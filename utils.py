@@ -2,6 +2,7 @@
 import numpy as np
 import torch
 import math
+import torch.nn as nn
 
 def create_dict(model):
     """Creates a dictionary containing all trainable parameters in a given model"""
@@ -33,11 +34,11 @@ def find_smallest(array, num):
 
     for i in range(to_prune):
         mask[index_array[i]] = 0
-    mask.reshape(orig_shape)
+    mask = mask.reshape(orig_shape)
     return mask
 
-def find_largest(array, num):
-    """ Finds the n smallest values in a given array"""
+def find_greatest(array, num):
+    """ Finds the n greatest values in a given array"""
     orig_shape = array.shape
     array_flat = array.flatten()
     mask = np.ones_like(array_flat)
@@ -48,3 +49,7 @@ def find_largest(array, num):
         mask[index_array[-i]] = 0
     mask.reshape(orig_shape)
     return mask
+
+def apply_mask(mask, array):
+    return nn.Parameter(torch.from_numpy(np.multiply(mask, array)).float()) 
+

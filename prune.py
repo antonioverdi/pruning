@@ -1,46 +1,27 @@
 """ Pruning experiments with pytorch"""
-import copy
 import torch
-import torch.nn as nn
-import torch.nn.utils.prune as prune
 import utils
 
-def greatest_delta(net):
-    """ Utility function for pruning network"""
-    if not isinstance(net, nn.Module):
-        print('Invalid input. Must be nn.Module')
-        return None
-    newnet = copy.copy(net)
-    modules_list = []
+def smallest_delta(model1, model2, amount):
+    """Prunes the weights that have changed the least between model1 and model2 """
+    for name1, module1 in model1.named_modules():
+        for name2, module2 in model2.named_modules():
+            if name1 == name2:
+                if isinstance(module1, torch.nn.Conv2d):
+                    array1 = module1.weight.detach().numpy()
+                    array2 = module2.weight.detach().numpy()
+                    difference = utils.find_difference(array1, array2)
+                    mask = utils.find_smallest(difference, amount)
+                    module2.weight = utils.apply_mask(mask, array2)
 
-    for name, module in newnet.named_modules():
-        if isinstance(module, torch.nn.Conv2d):
-            modules_list += [(module,'weight'),(module,'bias')]
-        if isinstance(module, torch.nn.Linear):
-            modules_list += [(module,'weight'),(module,'bias')]
-
-    prune.global_unstructured(
-        modules_list,
-        pruning_method=prune.L1Unstructured,
-        amount=0.2,)
-    return newnet
-
-def smallest_delta(net):
-    """ Utility function for pruning network"""
-    if not isinstance(net, nn.Module):
-        print('Invalid input. Must be nn.Module')
-        return None
-    newnet = copy.copy(net)
-    modules_list = []
-
-    for name, module in newnet.named_modules():
-        if isinstance(module, torch.nn.Conv2d):
-            modules_list += [(module,'weight'),(module,'bias')]
-        if isinstance(module, torch.nn.Linear):
-            modules_list += [(module,'weight'),(module,'bias')]
-
-    prune.global_unstructured(
-        modules_list,
-        pruning_method=prune.L1Unstructured,
-        amount=0.2,)
-    return newnet
+def greatest_delta(model1, model2, amount):
+    """Prunes the weights that have changed the most between model1 and model2 """
+    for name1, module1 in model1.named_modules():
+        for name2, module2 in model2.named_modules():
+            if name1 == name2:
+                if isinstance(module1, torch.nn.Conv2d):
+                    array1 = module1.weight.detach().numpy()
+                    array2 = module2.weight.detach().numpy()
+                    difference = utils.find_difference(array1, array2)
+                    mask = utils.find_largest(difference, amount)
+                    module2.weight = utils.apply_mask(mask, array2)
