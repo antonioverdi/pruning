@@ -1,7 +1,7 @@
 """Utility functions for pruning experiments """
+import math
 import numpy as np
 import torch
-import math
 import torch.nn as nn
 
 def create_dict(model):
@@ -19,35 +19,37 @@ def find_difference(first_array, second_array):
     difference = np.absolute(np.subtract(second_array, first_array))
     return difference
 
-def find_smallest(array, num):
+def find_smallest(array, amount):
     """ Finds the n smallest values in a given array"""
     orig_shape = array.shape
     array_flat = array.flatten()
     mask = np.ones_like(array_flat)
 
-    if isinstance(num, float):
-        to_prune = math.ceil(num*len(array_flat))
-    elif isinstance(num, int):
-        to_prune = num
+    if isinstance(amount, float):
+        amount = math.ceil(amount*len(array_flat))
+    
 
-    index_array = np.argpartition(array_flat, to_prune)
+    index_array = np.argpartition(array_flat, amount)
 
-    for i in range(to_prune):
+    for i in range(amount):
         mask[index_array[i]] = 0
     mask = mask.reshape(orig_shape)
     return mask
 
-def find_greatest(array, num):
+def find_greatest(array, amount):
     """ Finds the n greatest values in a given array"""
     orig_shape = array.shape
     array_flat = array.flatten()
     mask = np.ones_like(array_flat)
 
-    index_array = np.argpartition(array_flat, -num)
+    if isinstance(amount, float):
+        amount = math.ceil(amount*len(array_flat))
 
-    for i in range(num):
+    index_array = np.argpartition(array_flat, -amount)
+
+    for i in range(amount):
         mask[index_array[-i]] = 0
-    mask.reshape(orig_shape)
+    mask = mask.reshape(orig_shape)
     return mask
 
 def apply_mask(mask, array):
