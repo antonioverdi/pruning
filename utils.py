@@ -54,4 +54,4 @@ def find_greatest(array, amount):
 
 def apply_mask(mask, array):
     return nn.Parameter(torch.from_numpy(np.multiply(mask, array)).float()) 
-
+    
