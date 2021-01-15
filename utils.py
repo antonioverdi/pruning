@@ -19,7 +19,7 @@ def find_difference(first_array, second_array):
     difference = np.absolute(np.subtract(second_array, first_array))
     return difference
 
-def find_smallest(array, amount):
+def find_smallest(array, amount, already_pruned):
     """ Finds the n smallest values in a given array"""
     orig_shape = array.shape
     array_flat = array.flatten()
@@ -27,13 +27,14 @@ def find_smallest(array, amount):
 
     if isinstance(amount, float):
         amount = math.ceil(amount*len(array_flat))
-    
 
-    index_array = np.argpartition(array_flat, amount)
+    index_array = np.argpartition(array_flat, amount+already_pruned)
 
-    for i in range(amount):
+    for i in range(already_pruned, amount):
         mask[index_array[i]] = 0
+
     mask = mask.reshape(orig_shape)
+    already_pruned += amount
     return mask
 
 def find_greatest(array, amount):

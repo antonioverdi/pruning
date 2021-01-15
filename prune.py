@@ -2,7 +2,7 @@
 import torch
 import utils
 
-def prune_smallest(model1, model2, amount):
+def prune_smallest(model1, model2, amount, already_pruned):
     """Prunes the weights that have changed the least between model1 and model2 """
     for name1, module1 in model1.named_modules():
         for name2, module2 in model2.named_modules():
@@ -11,7 +11,7 @@ def prune_smallest(model1, model2, amount):
                     array1 = module1.weight.detach().numpy()
                     array2 = module2.weight.detach().numpy()
                     difference = utils.find_difference(array1, array2)
-                    mask = utils.find_smallest(difference, amount)
+                    mask = utils.find_smallest(difference, amount, already_pruned)
                     module2.weight = utils.apply_mask(mask, array2)
 
 def prune_greatest(model1, model2, amount):

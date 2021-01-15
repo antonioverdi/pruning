@@ -13,6 +13,7 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import resnet
 import json 
+import prune
 
 
 model_names = sorted(name for name in resnet.__dict__
@@ -55,6 +56,10 @@ parser.add_argument('--save-dir', dest='save_dir',
 parser.add_argument('--save-every', dest='save_every',
 					help='Saves checkpoints at every specified number of epochs',
 					type=int, default=10)
+parser.add_argument('--prune_amount', dest='prune_amount', help='Amount to prune per epoch',
+					default=0.2)
+parser.add_argument('--prune_smallest', action="store_true", help="Prunes weights with the smallest change between epochs")
+parser.add_argument('--prune_greatest', action="store_true", help="Prunes weights with the greatest change between epochs")
 parser.add_argument('--cpu', action="store_true", help="set true to avoid moving model to Cuda")
 best_prec1 = 0
 
@@ -165,6 +170,17 @@ def main():
 		print("Epoch Total Time: {:.3f}".format(time.time() - begin_time))
 
 		accuracy_dict['epoch{}'.format(epoch)] = prec1
+
+		if args.prune_smallest and epoch>0:
+			prune.prune_smallest(previous_epoch, model, args.amount)
+			previous_epoch = type(model)() 
+			previous_epoch.load_state_dict(model.state_dict())
+		
+		if args.prune_greatest and epoch>0:
+			prune.prune_greatest(previous_epoch, model, args.amount)
+			previous_epoch = type(model)() 
+			previous_epoch.load_state_dict(model.state_dict())
+
 
 	acc_file = open("accuracies.json", "w")
 	json.dump(accuracy_dict, acc_file)
