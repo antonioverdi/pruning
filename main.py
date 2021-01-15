@@ -173,13 +173,12 @@ def main():
 
 		if args.prune_smallest and epoch>0:
 			prune.prune_smallest(previous_epoch, model, args.amount)
-			previous_epoch = type(model)() 
-			previous_epoch.load_state_dict(model.state_dict())
 		
 		if args.prune_greatest and epoch>0:
 			prune.prune_greatest(previous_epoch, model, args.amount)
-			previous_epoch = type(model)() 
-			previous_epoch.load_state_dict(model.state_dict())
+
+		previous_epoch = type(model)() 
+		previous_epoch.load_state_dict(model.state_dict())
 
 
 	acc_file = open("accuracies.json", "w")
