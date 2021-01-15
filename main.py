@@ -164,7 +164,7 @@ def main():
 			}, filename=os.path.join(args.save_dir, 'model.th'))
 		print("Epoch Total Time: {:.3f}".format(time.time() - begin_time))
 
-		accuracy_dict['epoch'] = prec1
+		accuracy_dict['epoch{}'.format(epoch)] = prec1
 
 	acc_file = open("accuracies.json", "w")
 	json.dump(accuracy_dict, acc_file)
