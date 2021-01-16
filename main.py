@@ -154,8 +154,7 @@ def main():
 		prec1 = validate(val_loader, model, criterion, args.cpu)
 
 		# remember best prec@1 and save checkpoint
-		# is_best = prec1 > best_prec1
-		is_best = True
+		is_best = prec1 > best_prec1
 		best_prec1 = max(prec1, best_prec1)
 
 		if epoch > 0 and epoch % args.save_every == 0:
@@ -174,10 +173,10 @@ def main():
 
 		accuracy_dict['epoch{}'.format(epoch)] = prec1
 
-		if args.prune_smallest and epoch>0:
+		if args.prune_smallest and epoch>0 and epoch<5:
 			model = prune.prune_smallest(previous_epoch, model, args.prune_amount)
 		
-		if args.prune_greatest and epoch>0:
+		if args.prune_greatest and epoch>0 and epoch<5:
 			model = prune.prune_greatest(previous_epoch, model, args.prune_amount)
  
 		previous_epoch.load_state_dict(model.state_dict())
