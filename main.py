@@ -22,7 +22,7 @@ model_names = sorted(name for name in resnet.__dict__
 					 and callable(resnet.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='ResNet56 pruning experiment properties')
-parser.add_argument('--arch', '-a', metavar='ARCH', default='ResNet18',
+parser.add_argument('--arch', '-a', metavar='ARCH', default='ResNet50',
 					choices=model_names,
 					help='model architecture: ' + ' | '.join(model_names) +
 					' (default: resnet56)')
