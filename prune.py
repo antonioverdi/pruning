@@ -14,6 +14,8 @@ def prune_smallest(model1, model2, amount, already_pruned):
                     mask = utils.find_smallest(difference, amount, already_pruned)
                     module2.weight = utils.apply_mask(mask, array2)
 
+    return model2
+
 def prune_greatest(model1, model2, amount):
     """Prunes the weights that have changed the most between model1 and model2 """
     for name1, module1 in model1.named_modules():
@@ -25,3 +27,5 @@ def prune_greatest(model1, model2, amount):
                     difference = utils.find_difference(array1, array2)
                     mask = utils.find_greatest(difference, amount)
                     module2.weight = utils.apply_mask(mask, array2)
+
+    return model2
