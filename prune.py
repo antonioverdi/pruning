@@ -8,8 +8,8 @@ def prune_smallest(model1, model2, amount, already_pruned):
         for name2, module2 in model2.named_modules():
             if name1 == name2:
                 if isinstance(module1, torch.nn.Conv2d):
-                    array1 = module1.weight.detach().numpy()
-                    array2 = module2.weight.detach().numpy()
+                    array1 = module1.weight.detach().cpu().numpy()
+                    array2 = module2.weight.detach().cpu().numpy()
                     difference = utils.find_difference(array1, array2)
                     mask = utils.find_smallest(difference, amount, already_pruned)
                     module2.weight = utils.apply_mask(mask, array2)
@@ -20,8 +20,8 @@ def prune_greatest(model1, model2, amount):
         for name2, module2 in model2.named_modules():
             if name1 == name2:
                 if isinstance(module1, torch.nn.Conv2d):
-                    array1 = module1.weight.detach().numpy()
-                    array2 = module2.weight.detach().numpy()
+                    array1 = module1.weight.detach().cpu().numpy()
+                    array2 = module2.weight.detach().cpu().numpy()
                     difference = utils.find_difference(array1, array2)
                     mask = utils.find_greatest(difference, amount)
                     module2.weight = utils.apply_mask(mask, array2)

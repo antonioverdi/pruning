@@ -73,6 +73,7 @@ def main():
 		os.makedirs(args.save_dir)
 
 	model = torch.nn.DataParallel(resnet.__dict__[args.arch]())
+	previous_epoch = torch.nn.DataParallel(resnet.__dict__[args.arch]())
 	
 	normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
 									 std=[0.229, 0.224, 0.225])
@@ -97,6 +98,7 @@ def main():
 
 	if not args.cpu:
 		model.cuda()
+		previous_epoch.cuda()
 
 	# optionally resume from a checkpoint.
 	if args.resume:
@@ -172,12 +174,11 @@ def main():
 		accuracy_dict['epoch{}'.format(epoch)] = prec1
 
 		if args.prune_smallest and epoch>0:
-			prune.prune_smallest(previous_epoch, model, args.amount)
+			prune.prune_smallest(previous_epoch, model, args.prune_amount)
 		
 		if args.prune_greatest and epoch>0:
-			prune.prune_greatest(previous_epoch, model, args.amount)
-
-		previous_epoch = type(model)() 
+			prune.prune_greatest(previous_epoch, model, args.prune_amount)
+ 
 		previous_epoch.load_state_dict(model.state_dict())
 
 

@@ -54,5 +54,5 @@ def find_greatest(array, amount):
     return mask
 
 def apply_mask(mask, array):
-    return nn.Parameter(torch.from_numpy(np.multiply(mask, array)).float()) 
+    return nn.Parameter(torch.from_numpy(np.multiply(mask, array)).float().to("cuda:0")) 
     
