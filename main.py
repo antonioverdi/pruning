@@ -154,7 +154,8 @@ def main():
 		prec1 = validate(val_loader, model, criterion, args.cpu)
 
 		# remember best prec@1 and save checkpoint
-		is_best = prec1 > best_prec1
+		# is_best = prec1 > best_prec1
+		is_best = True
 		best_prec1 = max(prec1, best_prec1)
 
 		if epoch > 0 and epoch % args.save_every == 0:
