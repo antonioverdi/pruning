@@ -173,10 +173,10 @@ def main():
 
 		accuracy_dict['epoch{}'.format(epoch)] = prec1
 
-		if args.prune_smallest and epoch>0 and epoch<5:
-			model = prune.prune_smallest(previous_epoch, model, args.prune_amount)
+		if args.prune_smallest and epoch>0 and epoch<4:
+			model = prune.prune_smallest(previous_epoch, model, args.prune_amount, epoch)
 		
-		if args.prune_greatest and epoch>0 and epoch<5:
+		if args.prune_greatest and epoch>0 and epoch<4:
 			model = prune.prune_greatest(previous_epoch, model, args.prune_amount)
  
 		previous_epoch.load_state_dict(model.state_dict())

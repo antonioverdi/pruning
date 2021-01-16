@@ -28,6 +28,7 @@ def find_smallest(array, amount, already_pruned):
     if isinstance(amount, float):
         amount = math.ceil(amount*len(array_flat))
 
+    already_pruned = (already_pruned-1)*amount
     index_array = np.argpartition(array_flat, amount+already_pruned)
 
     for i in range(already_pruned, amount):
