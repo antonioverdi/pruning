@@ -58,6 +58,8 @@ parser.add_argument('--save-every', dest='save_every',
 					type=int, default=10)
 parser.add_argument('--prune_amount', dest='prune_amount', help='Amount to prune per epoch',
 					default=0.2)
+parser.add_argument('--prune_epochs', dest='prune_epochs', help='Amount to prune per epoch',
+					default=4)
 parser.add_argument('--prune_smallest', action="store_true", help="Prunes weights with the smallest change between epochs")
 parser.add_argument('--prune_greatest', action="store_true", help="Prunes weights with the greatest change between epochs")
 parser.add_argument('--cpu', action="store_true", help="set true to avoid moving model to Cuda")
@@ -173,10 +175,10 @@ def main():
 
 		accuracy_dict['epoch{}'.format(epoch)] = prec1
 
-		if args.prune_smallest and epoch>0 and epoch<5:
+		if args.prune_smallest and epoch>0 and epoch<args.prune_epochs:
 			model = prune.prune_smallest(previous_epoch, model, args.prune_amount, epoch)
 		
-		if args.prune_greatest and epoch>0 and epoch<4:
+		if args.prune_greatest and epoch>0 and epoch<args.prune_epochs:
 			model = prune.prune_greatest(previous_epoch, model, args.prune_amount)
  
 		previous_epoch.load_state_dict(model.state_dict())
