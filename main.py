@@ -12,7 +12,7 @@ import torch.utils.data
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import resnet
-import json 
+import json
 import prune
 
 
@@ -48,8 +48,6 @@ parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
 					help='evaluate model on validation set')
 parser.add_argument('--pretrained', dest='pretrained', action='store_true',
 					help='use pre-trained model')
-parser.add_argument('--half', dest='half', action='store_true',
-					help='use half-precision(16-bit) ')
 parser.add_argument('--save-dir', dest='save_dir',
 					help='The directory used to save the trained models',
 					default='save_temp', type=str)
@@ -102,7 +100,7 @@ def main():
 		model.cuda()
 		previous_epoch.cuda()
 
-	# optionally resume from a checkpoint.
+	# Resume from a checkpoint if desired
 	if args.resume:
 		if os.path.isfile(args.resume):
 			print("=> loading checkpoint '{}'".format(args.resume))
@@ -115,8 +113,8 @@ def main():
 		else:
 			print("=> no checkpoint found at '{}'".format(args.resume))
 
-	#if not args.cpu:
-	cudnn.benchmark = True
+	if not args.cpu:
+		cudnn.benchmark = True
 
 	## Optimizer and LR scheduler
 	criterion = nn.CrossEntropyLoss()
@@ -127,17 +125,6 @@ def main():
 
 	lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[91, 136], gamma=0.1)
 
-	if args.half:
-		model.half()
-		criterion.half()
-
-	if args.arch in ['resnet1202', 'resnet110']:
-		# for resnet1202 original paper uses lr=0.01 for first 400 minibatches for warm-up
-		# then switch back. In this setup it will correspond for first epoch.
-		for param_group in optimizer.param_groups:
-			param_group['lr'] = args.lr*0.1
-
-
 	if args.evaluate:
 		validate(val_loader, model, criterion, args.cpu)
 		return
@@ -146,16 +133,16 @@ def main():
 
 	for epoch in range(args.start_epoch, args.epochs):
 
-		# train for one epoch
+		# Train for a single epoch
 		print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
 		begin_time = time.time()
 		train(train_loader, model, criterion, optimizer, epoch, args.cpu)
 		lr_scheduler.step()
 
-		# evaluate on validation set
+		# Evaluate on validation set
 		prec1 = validate(val_loader, model, criterion, args.cpu)
 
-		# remember best prec@1 and save checkpoint
+		# Save if epoch is a checkpoint or if precision is best thus far
 		is_best = prec1 > best_prec1
 		best_prec1 = max(prec1, best_prec1)
 
@@ -168,22 +155,32 @@ def main():
 
 		if is_best:
 			save_checkpoint({
-			'state_dict': model.state_dict(),
-			'best_prec1': best_prec1,
+				'epoch': epoch + 1,
+				'state_dict': model.state_dict(),
+				'best_prec1': best_prec1,
 			}, filename=os.path.join(args.save_dir, 'model.th'))
 		print("Epoch Total Time: {:.3f}".format(time.time() - begin_time))
 
 		accuracy_dict['epoch{}'.format(epoch)] = prec1
 
+		# If we are pruning the smallest at each epoch
 		if args.prune_smallest and epoch>0 and epoch<args.prune_epochs:
 			model = prune.prune_smallest(previous_epoch, model, args.prune_amount, epoch)
 		
+		# If we are pruning the greatest at each epoch
 		if args.prune_greatest and epoch>0 and epoch<args.prune_epochs:
 			model = prune.prune_greatest(previous_epoch, model, args.prune_amount)
  
+		# Save the state dict so we can compare it with the state dict from the next epoch
 		previous_epoch.load_state_dict(model.state_dict())
+	
+		# Calculate and print out sparsity at the end of each epoch
+		sparsity_per_layer = utils.calculate_sparsity(model)
+		global_sparsity = sum(sparsity_per_layer)/len(sparsity_per_layer)
+		print("Global Sparsity: " + global_sparsity)
 
 
+	# Once the model has finished training, save the accuracies per epoch to a JSON file
 	acc_file = open("accuracies.json", "w")
 	json.dump(accuracy_dict, acc_file)
 	acc_file.close()
@@ -191,14 +188,14 @@ def main():
 
 def train(train_loader, model, criterion, optimizer, epoch, cpu=False):
 	"""
-		Run one train epoch
+	Run one train epoch
 	"""
 	batch_time = AverageMeter()
 	data_time = AverageMeter()
 	losses = AverageMeter()
 	top1 = AverageMeter()
 
-	# switch to train mode
+	# Switch to train mode
 	model.train()
 
 	end = time.time()
@@ -340,7 +337,6 @@ def accuracy(output, target, topk=(1,)):
 		correct_k = correct[:k].view(-1).float().sum(0)
 		res.append(correct_k.mul_(100.0 / batch_size))
 	return res
-
 
 if __name__ == '__main__':
 	main()
