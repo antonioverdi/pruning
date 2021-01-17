@@ -212,20 +212,19 @@ def train(train_loader, model, criterion, optimizer, epoch, cpu=False):
 			input_var = input.cuda()
 
 		target_var = target
-		if args.half:
-			input_var = input_var.half()
 
 		# compute output
 		output = model(input_var)
 		loss = criterion(output, target_var)
 
-		# compute gradient and do SGD step
+		# Compute grad and perform SGD
 		optimizer.zero_grad()
 		loss.backward()
 		optimizer.step()
 
 		output = output.float()
 		loss = loss.float()
+
 		# measure accuracy and record loss
 		prec1 = accuracy(output.data, target)[0]
 		losses.update(loss.item(), input.size(0))
@@ -266,9 +265,6 @@ def validate(val_loader, model, criterion, cpu=False):
 			else:
 				input_var = input
 				target_var = target
-
-			if args.half:
-				input_var = input_var.half()
 
 			# compute output
 			output = model(input_var)
