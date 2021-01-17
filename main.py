@@ -14,6 +14,7 @@ import torchvision.datasets as datasets
 import resnet
 import json
 import prune
+import utils
 
 
 model_names = sorted(name for name in resnet.__dict__
